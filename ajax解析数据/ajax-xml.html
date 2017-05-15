@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<title>xml解析</title>
+
+</head>
+<body>
+	<div id="noticecon">  
+        <ol>  
+        </ol>  
+    </div>
+
+</body>
+<script type="text/javascript" src="../jquery-1.11.3/jquery.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {  
+    $.ajax({  
+        url: 'file:///D:/zhandian/daily/test.xml',  
+        link: 'xml',  
+        success: function(data){  
+            // console.log(data);  
+            $(data).find("filed").find("item").each(function(index, ele) {  
+                var titles = $(ele).find("title").text();  
+                var links = $(ele).find("link").text();   
+                $("#noticecon").find('ol').append('<li><a href="'+links+'">'+titles+'</a></li>');  
+            });  
+        }  
+    });  
+})   
+</script>
+</html>
+
+
+
+<!-- xml文件 -->
+<?xml version="1.0" encoding="UTF-8" ?>  
+<filed>  
+  <item Name="Name1">  
+    <title>dsname</title>  
+    <link>www.baidu.com</link>  
+  </item>  
+  <item Name="Name2">  
+    <title>dstype</title>  
+    <link>www.baidu.com</link>  
+  </item>  
+</filed>
