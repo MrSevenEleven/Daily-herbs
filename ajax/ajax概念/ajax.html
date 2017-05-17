@@ -1,1 +1,89 @@
-1212
+<!doctype html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<title>ajax</title>
+</head>
+<body>
+
+
+</body>
+<script type="text/javascript">
+// 创建XMLHttpRequest对象
+var request;
+	if (window.XMLHttpRequest) {
+		request=new XMLHttpRequest();//IE7+,FF,Chrome,Opera,Safari 
+	};
+	else{
+		request=new ActiveXObject("Microsoft.XMLHTTP");//IE5,IE6
+	}
+
+//HTTP请求的概念
+	HTTP是一种无状态无状态协议（不建立持久的连接）。
+	HTTP请求一般有七个步骤：
+		1.建立TCP连接；
+		2.Web浏览器向Web服务器发送请求命令；
+		3.Web浏览器发送请求头信息；
+		4.Web服务器应答；
+		5.Web服务器发送应答头信息；
+		6.Web服务器向浏览器发送数据；
+		7.Web服务器关闭TCP连接；
+
+	一个HTTP请求一般由四部分组成：
+		1.HTTP请求的方法或动作，比如是GET还是POST；
+		2.正在请求的URL，即请求的地址是什么；
+		3.请求头，包含一些客户端环境信息，身份验证信息等；
+		4.请求体，也就是请求正文，请求正文中可以包含提交的查询字符串信息，表单信息等等；
+
+	GET：一般用于信息的获取，使用URL传递参数，对所发送的信息数量有限制，一般在2000个字符。（幂等）
+	POST：一般用于修改服务器上的资源，表单的新建修改删除，它对发送信息的数量没有限制。
+
+	一个HTTP响应一般由三部分组成：
+		1.一个数字和文字组成的状态码，用来显示请求是成功还是失败；
+		2.响应头，响应头也和请求头一样包含很多有用的信息，例如服务器类型、日期时间、内容类型和长度等；
+		3.响应体，也就是响应正文。
+
+	HTTP状态码由3位数字构成，其中收位数字定义了状态码的类型；
+		1XX：信息类，表示收到Web浏览器请求，正在进一步处理中；
+		2XX：成功，表示用户请求杯成功接收，理解和处理。例如：200 OK；
+		3XX：重定向，表示请求没有成功，客户必须采取进一步的动作；
+		4XX：客户端错误，表示客户端提交的请求有错误，例如：404 Not Found，意味着请求中所引用的文档不存在。
+		5XX：服务器错误，表示服务器不能完成对请求的处理。例如：500；
+
+//XMLHttpRequest发送请求
+	XMLHttpRequest发送请求：
+		open(method,url,async)  method:get或者post，不区分大小写；  url：地址；  async：true表示异步，false表示同步
+		send(string)
+
+		例如：request。open("GET","get.php",true);
+			  request.send();
+
+//XMLHttpRequest取得响应
+	XMLHttpRequest取得响应：
+		responseText:获得字符串形式的响应数据；
+		responseXML：获得XML形式的响应数据；
+		status和statusText:以数字和文本形式返回HTTP状态码；
+		getAllResponseHeader():获取所有的响应报头；
+		getResponseHeader():查询响应中的某个字段的值；
+
+	readyState属性：
+		0：请求未初始化，open还没有调用；
+		1：服务器连接已建立，open已调用；
+		2：请求已接收，即接收到头信息了；
+		3：请求处理中，即接收到响应主体了；
+		4：请求已完成，且响应已就绪，即响应完成了；
+	通过onreadystatechange()监听readyState属性，从而了解服务器状态：
+	例：	var request=new XMLHttpRequest();
+			request.open("GET","get.php",true);
+			request.send();
+			request.onreadystatechange=function(){
+				if(request.readyState===4&&request.state===200){
+					做一些事情
+				}
+			}
+		readyState属性每次变化都会触发onreadystatechange()事件;
+
+
+</script>
+</html>
+
