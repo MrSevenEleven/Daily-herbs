@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hover在多种情形下的触发性</title>
+    <style type="text/css">
+        .fatherDiv{
+            width: 600px;
+            height: 600px;
+            background: cornflowerblue;
+            font: "Microsoft YaHei" 15px;
+        }
+        .childDiv{
+            width:300px;
+            height: 300px;
+            background: green;
+        }
+        .newChild{
+            width: 200px;
+            height: 200px;
+            background: indigo;
+        }
+        .sign{
+            width: 100px;
+            height: 100px;
+            background: olive;
+        }
+
+
+    </style>
+    <script src="jquery-1.12.4.min.js"></script>
+</head>
+<body>
+    <!--<div class="fatherDiv">-->
+        <!--<div class="childDiv"></div>-->
+    <!--</div>-->
+    <div id="numberOne">父元素触发次数：<span></span></div>
+    <div id="numberTwo">子元素触发次数：<span></span></div>
+    <div id="numberThree">div创建次数：<span></span></div>
+
+
+    <script>
+        var numberOne=0,numberTwo=0,numberThree=0;
+        var flag=true;
+
+        function hoverfunc(){
+            $(".fatherDiv").hover(function(){
+                flag=false;
+                numberOne++;
+                $("#numberOne span").html(numberOne);
+                $(this).append("<div class='newChild'></div>");
+                // $("body").append("<div class='sign'></div>")
+            },function (){
+                $("#numberOne span").html("");
+                numberOne=0;
+                $(".newChild").remove();
+                flag=true;
+                // $(".sign").remove();
+            });
+
+            $(".childDiv").hover(function(){
+                numberTwo++;
+                $("#numberTwo span").html(numberTwo);
+            },function (){
+                $("#numberTwo span").html("");
+                numberTwo=0;
+            });
+        }
+
+
+
+        function createDiv(){
+
+            // $("#numberOne span").html("");
+            // numberOne=0;
+            // $(".newChild").remove();
+            // flag=true;
+
+            $("body .fatherDiv").remove();
+            $("body").append("<div class='fatherDiv'><div class='childDiv'></div></div>");
+            $("#numberThree span").html(++numberThree);
+
+        }
+
+        setInterval(function(){
+            createDiv();
+            if(flag){
+                hoverfunc();
+            }
+        },5000)
+    </script>
+</body>
+</html>
+<!--一个项目页面，表格是由插件自动生成并不断刷新，但数据长度过长会出现文字不能完全显示的问题，想通过为单元格绑定hover事件，实现提示框功能把单元格数据显示全，
+实现后出现闪烁问题，应该是hover事件重复触发-->
+
+<!--总结-->
+<!--正常父元素的hover不会被内部子元素触发，对于后添加进来的新子元素也不会触发父元素的hover-->
+<!--为自动刷新创建的元素绑定hover事件，事件必须在元素生成函数后绑定hover，否则事件将不起作用，同时，在hover移除未触发的情况下若元素又重新生成，则hover事件将
+会重复触发（鼠标处于触发位置）-->
+<!--hover事件的移出事件未触发情况下，若元素被删除，则移除事件会一直无法触发-->
+
+<!--解决-->
+<!--设置flag,在第一次触发移入后禁止触发hover，并在刷新执行后先执行hover的移出事件内的程序-->
