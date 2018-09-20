@@ -138,6 +138,41 @@
 
         -->
 
+    <!--显示过滤/排序结果-->
+        <!--有时，我们想要显示一个数组的过滤或排序副本，而不实际改变或重置原始数据。在这种情况下，可以创建返回过滤或排序数组的计算属性。-->
+            <ul id="fapp">
+            <li v-for="n in evenNumbers">{{n}}</li>
+        </ul>
+        <!--在计算属性不适用的情况下 (例如，在嵌套 v-for 循环中) 你可以使用一个 method 方法：-->
+            <ul id="fapp2">
+            <li v-for="n in even(numbers)">{{ n }}</li>
+        </ul>
+
+    <!--一段取值范围的 v-for-->
+        <!--v-for 也可以取整数。在这种情况下，它将重复多次模板。-->
+            <div id="intapp">
+                <span v-for="n in 10">{{ n }} </span>
+            </div>
+
+    <!--v-for with v-if-->
+        <!--当它们处于同一节点，v-for 的优先级比 v-if 更高，这意味着 v-if 将分别重复运行于每个 v-for 循环中。当你想为仅有的一些项渲染节点时，这种优先级的
+        机制会十分有用，如下：
+            <li v-for="todo in todos" v-if="!todo.isComplete">
+                {{ todo }}
+            </li>
+        上面的代码只传递了未完成的 todos。
+        而如果你的目的是有条件地跳过循环的执行，那么可以将 v-if 置于外层元素 (或 <template>)上。如：
+            <ul v-if="todos.length">
+              <li v-for="todo in todos">
+                {{ todo }}
+              </li>
+            </ul>
+            <p v-else>No todos left!</p>
+
+
+
+        -->
+
 <script>
     var example1=new Vue({
         el:'#example-1',
@@ -194,6 +229,40 @@
     });
     // key.items[1] = 'x';  不是响应性的,视图未改变
     // key.items.length = 2 ; 不是响应性的,视图未改变
+</script>
+<script>
+    var fapp=new Vue({
+        el:'#fapp',
+        data:{
+            numbers:[1,2,3,4,5,6],
+        },
+        computed:{
+            evenNumbers:function(){
+                return this.numbers.filter(function(number){
+                    return number%2===0;
+                })
+            }
+        },
+    })
+    var fapp2=new Vue({
+        el:'#fapp2',
+        data:{
+            numbers:[1,2,3,4,5,6],
+        },
+        methods:{
+            even:function(numbers){
+                return numbers.filter(function(number){
+                    return number%2===0;
+                })
+            }
+        }
+    })
+
+</script>
+<script>
+    var intapp=new Vue({
+        el:'#intapp',
+    })
 </script>
 </body>
 </html>
