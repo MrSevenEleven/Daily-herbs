@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>b</title>
+</head>
+<body>
+<script>
+    console.log(document.cookie);
+    if(window.addEventListener){
+        window.addEventListener("storage",handle_storage,false);
+    }else if(window.attachEvent){
+        window.attachEvent("onstorage",handle_storage);
+    }
+    function handle_storage(){
+        alert("触发");
+    }
+</script>
+</body>
+</html>
