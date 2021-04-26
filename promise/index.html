@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>promise</title>
+</head>
+<body>
+<script>
+
+    // 判断变量否为function
+    const isFunction = variable => typeof variable === 'function'
+
+    // Promise 内部状态
+    const STATUS = {PENDING: 'PENDING', FUFILLED: 'FUFILLED', REJECTED: 'REJECTED'}
+
+    class MyPromise {
+        constructor(executor) {
+            if (!isFunction(executor)) {
+                throw new Error('MyPromise must accept a function as a parameter')
+            }
+
+            this.status = STATUS.PENDING;
+            this.value = undefined; // 成过的值
+            this.reason = undefined; // 失败的值
+            this.handleFulfilled = [];
+            this.handleRejected = [];
+
+
+            try {
+                executor(this.resolve.bind(this), this.reject.bind(this));
+            } catch (e) {
+                // 出错走失败逻辑
+                this.reject(e)
+            }
+        }
+
+        resolve = (val) => {
+            if (this.status == STATUS.PENDING) {
+                this.status = STATUS.FUFILLED;
+                this.value = val;
+                let cb;
+                setTimeout(() => {
+                    while (cb = this.handleFulfilled.shift()) {
+                        cb(val);
+                    }
+                }, 0)
+            }
+        }
+
+        reject = (reason) => {
+            if (this.status == STATUS.PENDING) {
+                this.status = STATUS.REJECTED;
+                this.reason = reason;
+                let cb;
+                setTimeout(() => {
+                    while (cb = this.handleFulfilled.shift()) {
+                        cb(reason);
+                    }
+                }, 0)
+            }
+        }
+
+        then(onFulfilled, onRejected) {
+            let {value, status, reason} = this;
+
+            // 返回一个新的Promise对象
+            return new MyPromise((resolveNext, rejectNext) => {
+                //成功时执行的函数
+                let fulfilled=value=>{
+                    try {
+                        if (!isFunction(onFulfilled)) {
+                            resolveNext(value)
+                        } else {
+                            let res = onFulfilled(value);
+                            if (res instanceof MyPromise) {
+                                // 如果当前回调函数返回MyPromise对象，必须等待其状态改变后在执行下一个回调
+                                res.then(resolveNext, rejectNext)
+                            } else {
+                                //否则会将返回结果直接作为参数，传入下一个then的回调函数，并立即执行下一个then的回调函数
+                                resolveNext(res);
+                            }
+                        }
+                    } catch (err) {
+                        // 如果函数执行出错，新的Promise对象的状态为失败
+                        rejectNext(err)
+                    }
+                }
+                //失败时执行的函数
+                let rejected=reason=>{
+                    try {
+                        if (!isFunction(onRejected)) {
+                            rejectNext(reason)
+                        } else {
+                            let res = onRejected(reason);
+                            if (res instanceof MyPromise) {
+                                // 如果当前回调函数返回MyPromise对象，必须等待其状态改变后在执行下一个回调
+                                res.then(resolveNext, rejectNext)
+                            } else {
+                                //否则会将返回结果直接作为参数，传入下一个then的回调函数，并立即执行下一个then的回调函数
+                                rejectNext(res);
+                            }
+                        }
+                    } catch (err) {
+                        // 如果函数执行出错，新的Promise对象的状态为失败
+                        resolveNext(err)
+                    }
+                }
+
+
+
+
+
+                switch (status) {
+                    case STATUS.PENDING:
+                        if(onFulfilled){
+                            this.handleFulfilled.push(onFulfilled);
+                        }
+                        if(onRejected){
+                            this.handleRejected.push(onRejected);
+                        }
+                        break;
+                    case STATUS.FUFILLED:
+                        fulfilled(value)
+                        break;
+                    case STATUS.REJECTED:
+                        rejected(reason);
+                        break;
+                }
+            })
+        }
+    }
+
+
+
+    let p1=new MyPromise((resolve,reject)=>{
+        console.log('promise');
+        setTimeout(()=>{
+            resolve('success');
+        },1000)
+    }).then(()=>{
+        console.log('then1')
+    }).then(()=>{
+        console.log('then2')
+    })
+
+
+    // let promise1=new MyPromise(function(resolve,reject){
+    //     console.log('promise');
+    //     setTimeout(()=>{
+    //         resolve();
+    //     },1000)
+    // }).then(()=>{
+    //     console.log('resolve');
+    // })
+
+
+    // let readFile=new Promise(function(resolve,reject){
+    //     setTimeout()
+    // })
+
+
+    // let promise2=new Promise(function(resolve,reject){
+    //     console.log('promise');
+    //     setTimeout(()=>{
+    //         resolve();
+    //     },1000)
+    // }).then(()=>{
+    //     console.log('then1')
+    //     return new Promise(function(res,rej){
+    //         console.log('then1_promise')
+    //         setTimeout(()=>{
+    //             console.log('then1_async');
+    //             res();
+    //         },0)
+    //     })
+    // }).then(()=>{
+    //     console.log('then2')
+    // })
+    // console.log('out');
+
+    // let promise3=new Promise(function(resolve,reject){
+    //     console.log('promise');
+    //     setTimeout(()=>{
+    //         resolve();
+    //     },1000)
+    // })
+    // let then1=promise3.then(()=>{
+    //     console.log('then')
+    //     // console.log(then1);
+    //
+    // })
+    // console.log(then1);
+    // console.log(promise3);
+</script>
+</body>
+</html>
