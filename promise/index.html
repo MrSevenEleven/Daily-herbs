@@ -35,29 +35,64 @@
         }
 
         resolve = (val) => {
-            if (this.status == STATUS.PENDING) {
-                this.status = STATUS.FUFILLED;
-                this.value = val;
-                let cb;
-                setTimeout(() => {
+            if (this.status !== STATUS.PENDING) return;
+
+            let run = () => {
+                let runFulfilled = (value) => {
+                    let cb;
                     while (cb = this.handleFulfilled.shift()) {
-                        cb(val);
+                        cb(value);
                     }
-                }, 0)
+                };
+                let runRejected = (error) => {
+                    let cb;
+                    while (cb = this.handleRejected.shift()) {
+                        cb(error);
+                    }
+                };
+
+                /* 如果resolve的参数为Promise对象，则必须等待该Promise对象状态改变后,
+                  当前Promsie的状态才会改变，且状态取决于参数Promsie对象的状态
+                */
+                if (val instanceof MyPromise) {
+                    val.then(value => {
+                        this.status = STATUS.FUFILLED;
+                        this.value = value;
+                        runFulfilled(value)
+                    }, err => {
+                        this.status = STATUS.REJECTED;
+                        this.reason = err;
+                        runRejected(err)
+                    })
+                } else {
+                    this.status = STATUS.FUFILLED;
+                    this.value = val;
+                    runFulfilled(val);
+                }
+
+
             }
+
+            setTimeout(() => {
+                run()
+            }, 0)
+
         }
 
         reject = (reason) => {
-            if (this.status == STATUS.PENDING) {
+            if (this.status !== STATUS.PENDING) return;
+            let run = () => {
                 this.status = STATUS.REJECTED;
                 this.reason = reason;
                 let cb;
-                setTimeout(() => {
-                    while (cb = this.handleFulfilled.shift()) {
-                        cb(reason);
-                    }
-                }, 0)
+                while (cb = this.handleRejected.shift()) {
+                    cb(reason);
+                }
             }
+            setTimeout(()=>{
+                run();
+            },0)
+
         }
 
         then(onFulfilled, onRejected) {
@@ -66,7 +101,7 @@
             // 返回一个新的Promise对象
             return new MyPromise((resolveNext, rejectNext) => {
                 //成功时执行的函数
-                let fulfilled=value=>{
+                let fulfilled = value => {
                     try {
                         if (!isFunction(onFulfilled)) {
                             resolveNext(value)
@@ -86,7 +121,7 @@
                     }
                 }
                 //失败时执行的函数
-                let rejected=reason=>{
+                let rejected = reason => {
                     try {
                         if (!isFunction(onRejected)) {
                             rejectNext(reason)
@@ -97,27 +132,20 @@
                                 res.then(resolveNext, rejectNext)
                             } else {
                                 //否则会将返回结果直接作为参数，传入下一个then的回调函数，并立即执行下一个then的回调函数
-                                rejectNext(res);
+                                resolveNext(res);
                             }
                         }
                     } catch (err) {
                         // 如果函数执行出错，新的Promise对象的状态为失败
-                        resolveNext(err)
+                        rejectNext(err)
                     }
                 }
 
 
-
-
-
                 switch (status) {
                     case STATUS.PENDING:
-                        if(onFulfilled){
-                            this.handleFulfilled.push(onFulfilled);
-                        }
-                        if(onRejected){
-                            this.handleRejected.push(onRejected);
-                        }
+                        this.handleFulfilled.push(fulfilled);
+                        this.handleRejected.push(rejected);
                         break;
                     case STATUS.FUFILLED:
                         fulfilled(value)
@@ -128,20 +156,34 @@
                 }
             })
         }
+
+        catch(onRejected){
+            return this.then(undefined,onRejected)
+        }
+
+
     }
 
 
-
-    let p1=new MyPromise((resolve,reject)=>{
+    let p1 = new MyPromise((resolve, reject) => {
         console.log('promise');
-        setTimeout(()=>{
+        setTimeout(() => {
             resolve('success');
-        },1000)
-    }).then(()=>{
+        }, 1000)
+    }).then(() => {
         console.log('then1')
-    }).then(()=>{
-        console.log('then2')
+        return new MyPromise((nextResolve, nextReject) => {
+            setTimeout(() => {
+                nextReject()
+                console.log('promise-then')
+            }, 3000)
+        })
+    }).then(() => {
+        console.log('then2 resolve')
+    },()=>{
+        console.log('then2 reject')
     })
+
 
 
     // let promise1=new MyPromise(function(resolve,reject){
