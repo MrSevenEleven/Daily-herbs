@@ -89,9 +89,9 @@
                     cb(reason);
                 }
             }
-            setTimeout(()=>{
+            setTimeout(() => {
                 run();
-            },0)
+            }, 0)
 
         }
 
@@ -157,9 +157,66 @@
             })
         }
 
-        catch(onRejected){
-            return this.then(undefined,onRejected)
+        catch(onRejected) {
+            return this.then(undefined, onRejected)
         }
+
+        finally(cb){
+            return this.then(
+                value=>{MyPromise.resolve(cb()).then(()=>value)},
+                reason=>{MyPromise.resolve(cb()).then(()=>{throw reason})}
+            )
+        }
+
+        static resolve(val) {
+            if (val instanceof MyPromise) {//MyPromise,原样返回
+                return val
+            } else if (val.then && isFunction(val.then)) {//thenable对象
+                return new MyPromise(val.then)
+            } else {
+                return new MyPromise(resolve => resolve(val))
+            }
+        }
+
+        static reject(err) {
+            return new MyPromise((resolve, reject) => {
+                reject(err)
+            });
+        }
+
+        static all(list) {
+            return new MyPromise((resolve, reject) => {
+                let count = 0;
+                let value = [];
+                for (let [index, p] of list.entries) {
+                    this.resolve(p).then((val) => {
+                        count++;
+                        value.push(val);
+                        // 所有状态都变成fulfilled时返回的MyPromise状态就变成fulfilled
+                        if (count == list.length) {
+                            resolve(value)
+                        }
+                    }, (err) => {
+                        // 有一个被rejected时返回的MyPromise状态就变成rejected
+                        reject(err)
+                    })
+                }
+            })
+
+        }
+
+        static race(list){
+            return new MyPromise((resolve,reject)=>{
+                for(let p of list){
+                    this.resolve(p).then((val)=>{
+                        resolve(val);
+                    },(err)=>{
+                        reject(err);
+                    })
+                }
+            })
+        }
+
 
 
     }
@@ -182,57 +239,57 @@
         console.log('then2 resolve')
     },()=>{
         console.log('then2 reject')
+    }).finally(()=>{
+        console.log('finally')
     })
 
 
-
-    // let promise1=new MyPromise(function(resolve,reject){
-    //     console.log('promise');
-    //     setTimeout(()=>{
-    //         resolve();
-    //     },1000)
-    // }).then(()=>{
-    //     console.log('resolve');
-    // })
-
-
-    // let readFile=new Promise(function(resolve,reject){
-    //     setTimeout()
-    // })
-
-
-    // let promise2=new Promise(function(resolve,reject){
-    //     console.log('promise');
-    //     setTimeout(()=>{
-    //         resolve();
-    //     },1000)
-    // }).then(()=>{
-    //     console.log('then1')
-    //     return new Promise(function(res,rej){
-    //         console.log('then1_promise')
-    //         setTimeout(()=>{
-    //             console.log('then1_async');
-    //             res();
-    //         },0)
-    //     })
-    // }).then(()=>{
-    //     console.log('then2')
-    // })
-    // console.log('out');
-
-    // let promise3=new Promise(function(resolve,reject){
-    //     console.log('promise');
-    //     setTimeout(()=>{
-    //         resolve();
-    //     },1000)
-    // })
-    // let then1=promise3.then(()=>{
-    //     console.log('then')
-    //     // console.log(then1);
+    //myPromise.resolve()
+    // let test = {
+    //     then: (resolve, reject) => {
+    //         setTimeout(() => {
+    //             resolve('thenable')
+    //         }, 3000)
+    //     }
+    // }
     //
+    // MyPromise.resolve(test).then((val) => {
+    //     console.log(val + 'then')
     // })
-    // console.log(then1);
-    // console.log(promise3);
+
+
+    //myPromise.all()/race()
+    // let p1=new Promise((resolve,reject)=>{
+    //     setTimeout(()=>{
+    //         console.log('p1');
+    //         resolve('p1-value')
+    //     },1000)
+    // })
+    //
+    // let p2=new Promise((resolve,reject)=>{
+    //     setTimeout(()=>{
+    //         console.log('p2');
+    //         resolve('p2-value')
+    //         // reject('p2-err')
+    //     },2000)
+    // })
+    //
+    // let p3=new Promise((resolve,reject)=>{
+    //     setTimeout(()=>{
+    //         console.log('p3');
+    //         resolve('p3-value')
+    //     },3000)
+    // })
+    //
+    // Promise.all([p1,p2,p3]).then((val)=>{
+    //     console.log(val);
+    // },(err)=>{
+    //     console.log(err);
+    // })
+
+
+
+
 </script>
 </body>
 </html>
