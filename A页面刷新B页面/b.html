@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>b</title>
+</head>
+<body>
+  <div class="content">bbbb</div>
+  <button onclick="control()">刷新控制a页面</button>
+</body>
+<script>
+    console.log(window.opener)
+    function control(){
+        // window.opener.location.reload();
+        window.opener.document.querySelector('.content').innerHTML='b修改aaa'
+    }
+</script>
+</html>
